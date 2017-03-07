@@ -1,13 +1,21 @@
 /*
  Doodling in XY with two potentiometer inputs on an Arduino.
  An interaction prototype for a public installation.
+ See <rzach.me/blog/http://rzach.me/blog/thesis/research/bus%20stop%20machine/2017/02/21/Low-fi-drawing-prototype.html>
+ for context.
  
  Expects serial data from an Arduino in a form like:
  160,293
  170,312
  where these are raw analogRead values from two potentiometers.
  
- Robert Zacharias, rz@rzach.me 2/22/17
+ 2/22/17 * initial code
+ 3/7/17 * correct rows and cols switcheroo
+ * keep dot properly bounded inside the board
+ * added autosize
+ 
+ 
+ Robert Zacharias, rz@rzach.me 
  released by the author to the public domain
  */
 
@@ -20,12 +28,14 @@ boolean dots = true;
 boolean mouse = false;
 boolean serial = true;
 boolean statusText = true;
-int rows = 30; // # rows of dots
-int cols = 20; // # columns of dots
-int spacing = 30; // pixels between each dot and its neighbor
+boolean autosize = true; // set true to define cols and rows, and dots will fill width of screen
+int cols = 30; // # columns of dots
+int rows = 20; // # rows of dots
+int diameter = 30; // pixels of circle diameter (if not using autosize)
+int spacing = 35; // pixels between each dot and its neighbor, center to center (if not using autosize)
 color[][] colorMatrix = new color[rows][cols]; // dot color container
-color lit = color(255,255,0);
-color unlit = color(49,49,49);
+color lit = color(255, 255, 0);
+color unlit = color(49, 49, 49);
 
 void setup() 
 {
@@ -38,6 +48,11 @@ void setup()
     }
     String portName = Serial.list()[5]; // may have to change this number later
     myPort = new Serial(this, portName, 9600);
+  }
+
+  if (autosize) {
+    diameter = int((width*0.75) / cols);
+    spacing = int(diameter*1.2);
   }
 
   fill(255);
@@ -54,10 +69,11 @@ void setup()
 
 void draw()
 {
-  int xpos = int(x*((rows*spacing)/1024.0)); // need to do float math or the division truncates to 0
-  int ypos = int(y*((cols*spacing)/1024.0));
+  // if using Arduino data to move dot
+  int xpos = int(map(x, 0, 1023, spacing, cols*spacing));
+  int ypos = int(map(y, 0, 1023, spacing, rows*spacing));
 
-  if (mouse) {
+  if (mouse) { // if using mouse to move dot
     xpos = mouseX;
     ypos = mouseY;
   }
@@ -66,32 +82,29 @@ void draw()
   if (!trace) background(0);
 
   if (dots) {
-
-    // dot color matrix monitors position
-    // draw and fill the dots
-    // make the dots!
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
+    for (int i = 0; i < cols; i++) {
+      for (int j = 0; j < rows; j++) {
         // if in a dot's zone, change that dot's color
         if ( ((abs(((i+1)*spacing) - xpos)) < (spacing/2)) && ((abs(((j+1)*spacing) - ypos)) < (spacing/2)) ) {
-          colorMatrix[i][j] = lit;
+          colorMatrix[j][i] = lit;
         }
-        color thisDot = colorMatrix[i][j];
+        color thisDot = colorMatrix[j][i];
         fill(thisDot);
-        ellipse((i+1)*spacing, (j+1)*spacing, 25, 25);
+        ellipse((i+1)*spacing, (j+1)*spacing, diameter, diameter);
       }
     }
   }
 
   fill(255);
-  ellipse(xpos, ypos, 10, 10);
+  ellipse(xpos, ypos, 10, 10); // cursor position
 
   if (statusText) {
     translate(width - 100, 10);
     fill(0);
     rect(0, 0, 100, 100);
     fill(255);
-    String status = "trace " + trace + "\ndots " + dots + "\nmouse " + mouse;
+    String status = "cols " + cols + "\nrows " + rows + "\ntrace " + trace +
+    "\ndots " + dots + "\nmouse " + mouse + "\nr to reset dots";
     text(status, 5, 10);
   }
 }
@@ -102,8 +115,7 @@ void keyPressed() {
   if (key == 'd') dots = !dots;
   if (key == 'm') mouse = !mouse;
   if (key == 's') statusText = !statusText;
-  // reset dot colors
-  if (key == 'r') {
+  if (key == 'r') {  // reset dot colors
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
         colorMatrix[i][j] = unlit;
