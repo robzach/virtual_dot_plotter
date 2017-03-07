@@ -8,7 +8,7 @@ The pictures drawn look a bit like this beautiful lemon:
 
 ![lemon](https://raw.githubusercontent.com/robzach/virtual_dot_plotter/master/dots_image.png)
 
-The Arduino schematic is here:
+The Arduino schematic is below. Note that the red dotted line between A0 and A1 is an error; there shouldn't be any wire connecting them.
 
 ![Arduino schematic](https://github.com/robzach/virtual_dot_plotter/blob/master/x%20y%20plotter%20arduino%20to%20processing_schem.png)
 
