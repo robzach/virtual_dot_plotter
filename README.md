@@ -15,3 +15,5 @@ The Arduino schematic is below. Note that the red dotted line between A0 and A1 
 And the less-useful breadboard image is here:
 
 ![Arduino breadboard](https://github.com/robzach/virtual_dot_plotter/blob/master/x%20y%20plotter%20arduino%20to%20processing_bb.png)
+
+(The capacitors help smooth out rapid movements of the potentiometers, making the interface more fluid.)
