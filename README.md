@@ -1,4 +1,4 @@
-# virtual_dot_plotter
+# Two physical knobs to drive one drawing on a computer screen
 
 simple Arduino + Processing system to drive an Etch-a-Sketch like screen interaction from two potentiometers
 
